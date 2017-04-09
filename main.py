@@ -42,8 +42,8 @@ def print_board(grid):
     for row in grid:
         print(row)
         
-def check_win(grid):
-    for row in grid: #check horizontal
+def check_win(grid): #TODO: create test that inputs all winning scenarios?
+    for row in grid: #check horizontals
         p1count = 0
         p2count = 0
         previous = 0
@@ -60,6 +60,63 @@ def check_win(grid):
             elif p2count >= 3:
                 print('Player 2 Wins!')
                 return True
+    for col in range(0,7): #check verticals
+        p1count = 0
+        p2count = 0
+        previous = 0
+        for row in reversed(grid):
+            if row[col] == previous:
+                if row[col] == 1:
+                    p1count += 1
+                elif row[col] == 2:
+                    p2count += 1
+            previous = row[col]
+            if p1count >= 3:
+                print('Player 1 Wins!')
+                return True
+            elif p2count >= 3:
+                print('Player 2 Wins!')
+                return True
+    for col in range(-2,4): #check diagonals
+        p1count1 = 0
+        p2count1 = 0
+        previous1 = 0
+        n1 = 0
+        for row in reversed(grid): #going up left to right
+            if col+n1 <= 6 and col+n1 >= 0:
+                if row[col+n1] == previous1:
+                    if row[col+n1] == 1:
+                        p1count1 += 1
+                    elif row[col+n1] == 2:
+                        p2count1 += 1
+                previous1 = row[col+n1]
+                if p1count1 >= 3:
+                    print('Player 1 Wins!')
+                    return True
+                elif p2count1 >= 3:
+                    print('Player 2 Wins!')
+                    return True
+            n1 += 1
+        
+        p1count2 = 0
+        p2count2 = 0
+        previous2 = 0
+        n2 = 0
+        for row in grid: #going down left to right
+            if col+n2 <= 6 and col+n2 >= 0:
+                if row[col+n2] == previous2:
+                    if row[col+n2] == 1:
+                        p1count2 += 1
+                    elif row[col+n2] == 2:
+                        p2count2 += 1
+                previous2 = row[col+n2]
+                if p1count2 >= 3:
+                    print('Player 1 Wins!')
+                    return True
+                elif p2count2 >= 3:
+                    print('Player 2 Wins!')
+                    return True
+            n2 += 1
     for row in grid: #check for a tie
         for column in row:
             if column == 0:
