@@ -1,3 +1,7 @@
+import random
+
+winCol = None #global var for move that ai needs to make to block Player 1 from winning the game
+
 def insert_disc(grid, column, player):
     for row in reversed(grid):
         if row[column] == 0:
@@ -38,21 +42,42 @@ def player_turn(grid,player):
     print_board(grid)
     return check_win(grid)
 
+def ai_turn(grid,player):
+    global winCol
+    col = None
+    rc = 1
+    while col is None or rc == 1:
+        if winCol is not None:
+            col = winCol #block Player 1
+            winCol = None
+        else:
+            col = random.randint(0,6)
+        print('Computer has made a move.')
+        if col is not None:
+            rc = insert_disc(grid,col,player)
+
+    print_board(grid)
+    return check_win(grid)
+
 def print_board(grid):
     for row in grid:
         print(row)
         
 def check_win(grid): #TODO: create test that inputs all winning scenarios?
+    global winCol
     for row in grid: #check horizontals
         p1count = 0
         p2count = 0
         previous = 0
-        for column in row:
+        for index, column in enumerate(row):
             if column == previous:
                 if column == 1:
                     p1count += 1
                 elif column == 2:
                     p2count += 1
+            else: #reset counters back to zero
+                p1count = 0
+                p2count = 0
             previous = column
             if p1count >= 3:
                 print('Player 1 Wins!')
@@ -60,16 +85,21 @@ def check_win(grid): #TODO: create test that inputs all winning scenarios?
             elif p2count >= 3:
                 print('Player 2 Wins!')
                 return True
+            elif p1count >= 2 and column == previous and column == 1 and row[index+1] == 0: #if player 1 has 3 in a row horizontally and the next spot is blank, set winCol to the next column to the right
+                winCol = index+1 #TODO: this only works if the column to block is on the right, implement for left side
     for col in range(0,7): #check verticals
         p1count = 0
         p2count = 0
         previous = 0
-        for row in reversed(grid):
+        for index, row in enumerate(reversed(grid)):
             if row[col] == previous:
                 if row[col] == 1:
                     p1count += 1
                 elif row[col] == 2:
                     p2count += 1
+            else: #reset counters back to zero
+                p1count = 0
+                p2count = 0
             previous = row[col]
             if p1count >= 3:
                 print('Player 1 Wins!')
@@ -77,6 +107,10 @@ def check_win(grid): #TODO: create test that inputs all winning scenarios?
             elif p2count >= 3:
                 print('Player 2 Wins!')
                 return True
+            elif p1count >= 2 and row[col] == previous and row[col] == 1 and grid[6-index-2][col] == 0: #if player 1 has 3 in a row vertically and the next spot is blank, set winCol to the current column
+                print(6-index-2)
+                print(col)
+                winCol = col
     for col in range(-2,4): #check diagonals
         p1count1 = 0
         p2count1 = 0
@@ -143,6 +177,7 @@ if __name__ == '__main__':
     while not game_over:
         game_over = player_turn(grid,1)
         if not game_over:
-            game_over = player_turn(grid,2)
+            #game_over = player_turn(grid,2)
+            game_over = ai_turn(grid,2)
 
 
