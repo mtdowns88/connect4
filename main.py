@@ -62,95 +62,67 @@ def ai_turn(grid,player):
 def print_board(grid):
     for row in grid:
         print(row)
-        
-def check_win(grid): #TODO: create test that inputs all winning scenarios?
-    global winCol
-    for row in grid: #check horizontals
-        p1count = 0
-        p2count = 0
-        previous = 0
-        for index, column in enumerate(row):
-            if column == previous:
-                if column == 1:
-                    p1count += 1
-                elif column == 2:
-                    p2count += 1
-            else: #reset counters back to zero
-                p1count = 0
-                p2count = 0
-            previous = column
-            if p1count >= 3:
-                print('Player 1 Wins!')
-                return True
-            elif p2count >= 3:
-                print('Player 2 Wins!')
-                return True
-            elif p1count >= 2 and column == previous and column == 1 and row[index+1] == 0: #if player 1 has 3 in a row horizontally and the next spot is blank, set winCol to the next column to the right
-                winCol = index+1 #TODO: this only works if the column to block is on the right, implement for left side
+
+#################################
+def get_horizontal_lines(grid):
+    return grid
+
+def get_vertical_lines(grid):
+    vertical_list = []
     for col in range(0,7): #check verticals
-        p1count = 0
-        p2count = 0
-        previous = 0
-        for index, row in enumerate(reversed(grid)):
-            if row[col] == previous:
-                if row[col] == 1:
-                    p1count += 1
-                elif row[col] == 2:
-                    p2count += 1
-            else: #reset counters back to zero
-                p1count = 0
-                p2count = 0
-            previous = row[col]
-            if p1count >= 3:
-                print('Player 1 Wins!')
-                return True
-            elif p2count >= 3:
-                print('Player 2 Wins!')
-                return True
-            elif p1count >= 2 and row[col] == previous and row[col] == 1 and grid[6-index-2][col] == 0: #if player 1 has 3 in a row vertically and the next spot is blank, set winCol to the current column
-                print(6-index-2)
-                print(col)
-                winCol = col
+        line = []
+        for row in reversed(grid):
+            line.append(row[col])
+        vertical_list.append(line)
+    return vertical_list
+
+def get_diagonal_lines(grid):
+    diagonal_list = []
     for col in range(-2,4): #check diagonals
-        p1count1 = 0
-        p2count1 = 0
-        previous1 = 0
         n1 = 0
+        line = []
         for row in reversed(grid): #going up left to right
-            if col+n1 <= 6 and col+n1 >= 0:
-                if row[col+n1] == previous1:
-                    if row[col+n1] == 1:
-                        p1count1 += 1
-                    elif row[col+n1] == 2:
-                        p2count1 += 1
-                previous1 = row[col+n1]
-                if p1count1 >= 3:
-                    print('Player 1 Wins!')
-                    return True
-                elif p2count1 >= 3:
-                    print('Player 2 Wins!')
-                    return True
+            if col+n1 >= 0 and col+n1 <= 6:
+                line.append(row[col+n1])
             n1 += 1
+        diagonal_list.append(line)
         
-        p1count2 = 0
-        p2count2 = 0
-        previous2 = 0
         n2 = 0
+        line2 = []
         for row in grid: #going down left to right
-            if col+n2 <= 6 and col+n2 >= 0:
-                if row[col+n2] == previous2:
-                    if row[col+n2] == 1:
-                        p1count2 += 1
-                    elif row[col+n2] == 2:
-                        p2count2 += 1
-                previous2 = row[col+n2]
-                if p1count2 >= 3:
-                    print('Player 1 Wins!')
-                    return True
-                elif p2count2 >= 3:
-                    print('Player 2 Wins!')
-                    return True
+            if col+n2 >= 0 and col+n2 <= 6:
+                line2.append(row[col+n2])
             n2 += 1
+        diagonal_list.append(line2)
+    return diagonal_list
+
+def get_all_lines(grid):
+    all_lines = []
+    all_lines.extend(get_horizontal_lines(grid))
+    all_lines.extend(get_vertical_lines(grid))
+    all_lines.extend(get_diagonal_lines(grid))
+    return all_lines
+
+def check_line_for_pattern(line, pattern):
+    pattern_length = len(pattern)
+    line_length = len(line)
+    for i in range(0,line_length-pattern_length+1):
+        if line[i:i+pattern_length] == pattern:
+            return i
+    return -1
+
+def check_win(grid):
+    list_of_lines = get_all_lines(grid)
+    for line in list_of_lines:
+        if check_line_for_pattern(line, [1,1,1,1]) >= 0:
+            print('Player 1 Wins!')
+            return True
+        if check_line_for_pattern(line, [2,2,2,2]) > 0:
+            print('Player 2 Wins!')
+            return True
+    return check_tie(grid)
+
+def check_tie(grid):
     for row in grid: #check for a tie
         for column in row:
             if column == 0:
