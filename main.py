@@ -1,7 +1,5 @@
 import random
 
-winCol = None #global var for move that ai needs to make to block Player 1 from winning the game
-
 def insert_disc(grid, column, player):
     for row in reversed(grid):
         if row[column] == 0:
@@ -43,17 +41,12 @@ def player_turn(grid,player):
     return check_win(grid)
 
 def ai_turn(grid,player):
-    global winCol
     col = None
     rc = 1
     while col is None or rc == 1:
-        if winCol is not None:
-            col = winCol #block Player 1
-            winCol = None
-        else:
-            col = random.randint(0,6)
-        print('Computer has made a move.')
+        col = get_best_column(grid)
         if col is not None:
+            print('Computer has made a move.')
             rc = insert_disc(grid,col,player)
 
     print_board(grid)
@@ -63,7 +56,6 @@ def print_board(grid):
     for row in grid:
         print(row)
 
-#################################
 def get_horizontal_lines(grid):
     return grid
 
@@ -71,16 +63,23 @@ def get_vertical_lines(grid):
     vertical_list = []
     for col in range(0,7): #check verticals
         line = []
-        for row in reversed(grid):
+        for row in reversed(grid): #list is generated in ascending order
             line.append(row[col])
         vertical_list.append(line)
     return vertical_list
 
-def get_diagonal_lines(grid):
+def get_diagonal_lines(grid): #make this 1 function that takes in either grid or reversed(grid) as as argument and call it twice
     diagonal_list = []
     for col in range(-2,4): #check diagonals
         n1 = 0
-        line = []
+        if col < 1:
+            line = []
+        elif col == 1:
+            line = [-1]
+        elif col == 2:
+            line = [-1,-1]
+        elif col == 3:
+            line = [-1,-1,-1]
         for row in reversed(grid): #going up left to right
             if col+n1 >= 0 and col+n1 <= 6:
                 line.append(row[col+n1])
@@ -88,7 +87,14 @@ def get_diagonal_lines(grid):
         diagonal_list.append(line)
         
         n2 = 0
-        line2 = []
+        if col < 1:
+            line2 = []
+        elif col == 1:
+            line2 = [-1]
+        elif col == 2:
+            line2 = [-1,-1]
+        elif col == 3:
+            line2 = [-1,-1,-1]
         for row in grid: #going down left to right
             if col+n2 >= 0 and col+n2 <= 6:
                 line2.append(row[col+n2])
@@ -113,24 +119,68 @@ def check_line_for_pattern(line, pattern):
 
 def check_win(grid):
     list_of_lines = get_all_lines(grid)
+    tie = True
     for line in list_of_lines:
         if check_line_for_pattern(line, [1,1,1,1]) >= 0:
             print('Player 1 Wins!')
             return True
-        if check_line_for_pattern(line, [2,2,2,2]) > 0:
+        elif check_line_for_pattern(line, [2,2,2,2]) >= 0:
             print('Player 2 Wins!')
             return True
-    return check_tie(grid)
+        elif check_line_for_pattern(line, [0]) >= 0:
+            tie = False
+    if tie:
+        print('The game is a tie!')
+        return True
+    else:
+        return False
 
-def check_tie(grid):
-    for row in grid: #check for a tie
-        for column in row:
-            if column == 0:
-                return False
-    print('The game is a tie!')
-    return True
+def get_best_column(grid):
+    blockcol = -1
+    wincol = -1
+    for index, line in enumerate(get_vertical_lines(grid)): #check vertical lines
+        if check_line_for_pattern(line, [1,1,1,0]) >= 0:
+            blockcol = index
+        elif check_line_for_pattern(line, [2,2,2,0]) >= 0:
+            wincol = index
 
-if __name__ == '__main__':
+    horiz_diag_lines = []
+    horiz_diag_lines.extend(get_horizontal_lines(grid))
+    horiz_diag_lines.extend(get_diagonal_lines(grid))
+    for line in horiz_diag_lines: #check horizontal and diagonal lines - false positives currently if there is not a disc in the slot below the block/win empty slot. get row index and check the vertical column at that index?
+        pattern1a = check_line_for_pattern(line, [0,1,1,1])
+        if pattern1a >= 0:
+            blockcol = pattern1a
+        pattern1b = check_line_for_pattern(line, [1,0,1,1])
+        if pattern1b >= 0:
+            blockcol = pattern1b+1
+        pattern1c = check_line_for_pattern(line, [1,1,0,1])
+        if pattern1c >= 0:
+            blockcol = pattern1c+2
+        pattern1d = check_line_for_pattern(line, [1,1,1,0])
+        if pattern1d >= 0:
+            blockcol = pattern1d+3
+        pattern2a = check_line_for_pattern(line, [0,2,2,2])
+        if pattern2a >= 0:
+            wincol = pattern2a
+        pattern2b = check_line_for_pattern(line, [2,0,2,2])
+        if pattern2b >= 0:
+            wincol = pattern2b+1
+        pattern2c = check_line_for_pattern(line, [2,2,0,2])
+        if pattern2c >= 0:
+            wincol = pattern2c+2
+        pattern2d = check_line_for_pattern(line, [2,2,2,0])
+        if pattern2d >= 0:
+            wincol = pattern2d+3
+            
+    if wincol >= 0: #computer should always prioritize a winning move
+        return wincol
+    elif blockcol >= 0: #next should block player from winning
+        return blockcol
+    else: #otherwise, play randomly for now
+        return random.randint(0,6)
+
+if __name__ == '__main__': #add in test cases?
     row1 = [0,0,0,0,0,0,0]
     row2 = [0,0,0,0,0,0,0]
     row3 = [0,0,0,0,0,0,0]
@@ -147,7 +197,7 @@ if __name__ == '__main__':
     print_board(grid)
     game_over = False
     while not game_over:
-        game_over = player_turn(grid,1)
+        game_over = player_turn(grid,1) #add in proper error handling
         if not game_over:
             #game_over = player_turn(grid,2)
             game_over = ai_turn(grid,2)
