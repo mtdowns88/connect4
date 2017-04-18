@@ -39,7 +39,7 @@ if __name__ == '__main__':
     board = Board()
     game_over = False
     while not game_over:
-        game_over = player_turn(board,1) #add in proper error handling
+        game_over = player_turn(board,1) #add in proper error handling?
         if not game_over:
             #game_over = player_turn(grid,2)
             game_over = ai_turn(board,2)

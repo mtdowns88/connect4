@@ -81,4 +81,8 @@ class Board():
 
     def print_board(self): #prints the board contained in this object
         for row in self.grid:
-            print(row)
+            rowstring = '|'
+            for disc in row:
+                rowstring = rowstring + str(disc)
+                rowstring = rowstring + '|'
+            print(rowstring)
